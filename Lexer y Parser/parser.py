@@ -36,6 +36,7 @@ from lexer import Lexer, Token, TokenType
 # NODOS DEL AST (Árbol Sintáctico Abstracto)
 # ============================================================
 
+# --- Nodo hoja: representa el tipo de tejido al final de una rama ---
 @dataclass
 class Tejido:
     """Nodo hoja: V (sano) o C (cancerígeno)."""
@@ -45,6 +46,7 @@ class Tejido:
         return f"Tejido({self.valor})"
 
 
+# --- Nodo intermedio: representa una rama vascular con posibles sub-ramas ---
 @dataclass
 class Rama:
     """
@@ -58,12 +60,13 @@ class Rama:
         NO una dirección izquierda/derecha. La dirección de cada sub-rama
         está, a su vez, en su propio campo `giro`.
     """
-    giro: str
-    tejido: Tejido
-    primera_sub: Optional["Rama"] = None
-    segunda_sub: Optional["Rama"] = None
+    giro: str                              # Dirección del giro ("+" o "-")
+    tejido: Tejido                         # Tipo de tejido en esta rama
+    primera_sub: Optional["Rama"] = None   # 1ra sub-rama (None si es hoja)
+    segunda_sub: Optional["Rama"] = None   # 2da sub-rama (None si es hoja)
 
     def es_hoja(self) -> bool:
+        """Una rama es hoja si no tiene sub-ramas (fin de la bifurcación)."""
         return self.primera_sub is None and self.segunda_sub is None
 
     def __repr__(self):
@@ -73,6 +76,7 @@ class Rama:
                 f"1ra={self.primera_sub}, 2da={self.segunda_sub})")
 
 
+# --- Nodo tronco: siempre 3 segmentos F consecutivos ---
 @dataclass
 class Tronco:
     """Nodo <tronco>. Siempre 'FFF', no necesita datos adicionales."""
@@ -81,6 +85,7 @@ class Tronco:
         return "Tronco(FFF)"
 
 
+# --- Nodo raíz: representa la estructura vascular completa ---
 @dataclass
 class Vaso:
     """
@@ -91,9 +96,9 @@ class Vaso:
     NO una dirección izquierda/derecha. La dirección real de cada una
     está en su propio campo `giro`.
     """
-    tronco: Tronco
-    rama_1: Rama
-    rama_2: Rama
+    tronco: Tronco   # El tronco principal (FFF)
+    rama_1: Rama     # Primera rama (la que aparece primero en el texto)
+    rama_2: Rama     # Segunda rama (la que aparece segunda en el texto)
 
     def __repr__(self):
         return f"Vaso(tronco={self.tronco}, rama_1={self.rama_1}, rama_2={self.rama_2})"
@@ -131,30 +136,31 @@ class Parser:
     """
 
     def __init__(self, tokens: List[Token]):
-        self.tokens = tokens
-        self.pos = 0
+        self.tokens = tokens  # Lista de tokens producida por el Lexer
+        self.pos = 0          # Índice del token actual
 
     # ------------------------------------------------------
-    # Utilidades básicas de navegación
+    # Utilidades básicas de navegación sobre la lista de tokens
     # ------------------------------------------------------
+
     def current(self) -> Token:
-        """Token actual (lookahead de 1)."""
+        """Devuelve el token actual sin consumirlo (lookahead de 1)."""
         return self.tokens[self.pos]
 
     def advance(self) -> Token:
-        """Consume el token actual y avanza al siguiente."""
+        """Consume el token actual, avanza al siguiente y devuelve el consumido."""
         token = self.tokens[self.pos]
         self.pos += 1
         return token
 
     def check(self, *tipos: TokenType) -> bool:
-        """¿El token actual es de alguno de estos tipos?"""
+        """Verifica si el token actual es de alguno de los tipos indicados."""
         return self.current().type in tipos
 
     def expect(self, tipo: TokenType, descripcion: str) -> Token:
         """
         Consume el token actual SI Y SOLO SI es del tipo esperado.
-        Si no, lanza un error sintáctico.
+        Si no coincide, lanza SyntaxErrorSARTV con mensaje descriptivo.
         """
         if self.current().type != tipo:
             raise SyntaxErrorSARTV(descripcion, self.current())
@@ -208,6 +214,7 @@ class Parser:
     # lookahead(1) si hay sub-ramas o no.
     # ------------------------------------------------------
     def parse_rama(self) -> Rama:
+        # Paso 1: consumir el prefijo común "<giro> F <tejido>"
         giro = self.parse_giro()
         self.expect(TokenType.F, "'F' (segmento de la rama)")
         tejido = self.parse_tejido()
@@ -215,14 +222,15 @@ class Parser:
         primera_sub: Optional[Rama] = None
         segunda_sub: Optional[Rama] = None
 
-        # Lookahead: si lo que sigue es '[', esta rama se bifurca de nuevo.
+        # Paso 2 (decisión LL(1)): si sigue '[', hay sub-ramas (recursión);
+        # si no, la rama termina aquí (es una hoja)
         if self.check(TokenType.LBRACKET):
             self.advance()  # consume '['
-            primera_sub = self.parse_rama()
+            primera_sub = self.parse_rama()  # llamada recursiva
             self.expect(TokenType.RBRACKET, "']' (fin de la 1ra sub-rama)")
 
             self.expect(TokenType.LBRACKET, "'[' (inicio de la 2da sub-rama)")
-            segunda_sub = self.parse_rama()
+            segunda_sub = self.parse_rama()  # llamada recursiva
             self.expect(TokenType.RBRACKET, "']' (fin de la 2da sub-rama)")
 
         # Si no es '[', no hacemos nada más: la rama es una hoja

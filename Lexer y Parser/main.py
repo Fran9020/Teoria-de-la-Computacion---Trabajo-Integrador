@@ -31,19 +31,21 @@ from fractal_viz import generar_svg
 
 
 
+# --- Etapa 1+2 del pipeline: análisis léxico + sintáctico ---
 def analizar(cadena: str):
     """
     Ejecuta lexer + parser sobre `cadena`.
     Devuelve (tokens, ast) si es aceptada.
     Lanza LexicalError o SyntaxErrorSARTV si es rechazada.
     """
-    tokens = Lexer(cadena).tokenize()
-    ast = Parser(tokens).parse()
+    tokens = Lexer(cadena).tokenize()   # Análisis léxico → lista de tokens
+    ast = Parser(tokens).parse()        # Análisis sintáctico → árbol AST
     return tokens, ast
 
 
 
 
+# --- Salida formateada de los tokens generados por el lexer ---
 def mostrar_tokens(tokens) -> None:
     print("\n--- Tokens generados (analisis lexico) ---")
     for tok in tokens:
@@ -56,6 +58,7 @@ def mostrar_tokens(tokens) -> None:
 
 
 
+# --- Salida formateada del AST generado por el parser ---
 def mostrar_ast(ast) -> None:
     print("\n--- AST generado (analisis sintactico) ---")
     dibujar_ast(ast)
@@ -63,8 +66,9 @@ def mostrar_ast(ast) -> None:
 
 
 
+# --- Generación del archivo SVG con la visualización fractal ---
 def generar_imagen(cadena: str, archivo_salida: str) -> None:
-    svg = generar_svg(cadena, titulo=cadena)
+    svg = generar_svg(cadena, titulo=cadena)  # Interpreta el AST y genera SVG
     with open(archivo_salida, "w", encoding="utf-8") as f:
         f.write(svg)
     print(f"\n--- Visualizacion fractal generada ---")
@@ -73,6 +77,7 @@ def generar_imagen(cadena: str, archivo_salida: str) -> None:
 
 
 
+# --- Pipeline completo: analizar → mostrar → generar imagen ---
 def procesar(cadena: str, archivo_salida: str) -> bool:
     """
     Procesa una cadena de entrada mostrando cada etapa del pipeline.
@@ -80,7 +85,7 @@ def procesar(cadena: str, archivo_salida: str) -> bool:
     """
     print(f"\nEntrada: {cadena!r}")
 
-
+    # Intentar análisis léxico + sintáctico; capturar errores
     try:
         tokens, ast = analizar(cadena)
     except LexicalError as e:
@@ -92,16 +97,17 @@ def procesar(cadena: str, archivo_salida: str) -> bool:
         print(f"  {e}")
         return False
 
-
+    # Si llegó acá, la cadena pertenece al lenguaje L(G)
     print("\nResultado: CADENA ACEPTADA")
-    mostrar_tokens(tokens)
-    mostrar_ast(ast)
-    generar_imagen(cadena, archivo_salida)
+    mostrar_tokens(tokens)                    # Mostrar tokens del lexer
+    mostrar_ast(ast)                          # Mostrar árbol AST
+    generar_imagen(cadena, archivo_salida)    # Generar visualización SVG
     return True
 
 
 
 
+# --- Modo interactivo: el usuario ingresa cadenas por consola ---
 def modo_interactivo() -> None:
     print("=" * 60)
     print("SART-V - Analizador de Redes Vasculares (GLC secuencial)")
@@ -112,18 +118,19 @@ def modo_interactivo() -> None:
 
     contador = 1
     while True:
+        # Leer entrada del usuario
         try:
             cadena = input("Cadena> ").strip()
         except (EOFError, KeyboardInterrupt):
             print("\nFin.")
             break
 
-
+        # Salir si el usuario lo indica o deja vacío
         if cadena.lower() in ("salir", "exit", "quit", ""):
             print("Fin.")
             break
 
-
+        # Procesar la cadena y generar SVG numerado
         archivo_salida = f"salida_{contador}.svg"
         procesar(cadena, archivo_salida)
         contador += 1
@@ -132,21 +139,21 @@ def modo_interactivo() -> None:
 
 
 
+# --- Punto de entrada principal: decide modo interactivo o por argumento ---
 def main():
     args = sys.argv[1:]
 
-
+    # Sin argumentos → modo interactivo (bucle de entrada)
     if not args:
         modo_interactivo()
         return
 
-
+    # Con argumentos → procesar cadena directamente
     cadena = args[0]
     archivo_salida = args[1] if len(args) > 1 else "salida.svg"
 
-
     aceptada = procesar(cadena, archivo_salida)
-    sys.exit(0 if aceptada else 1)
+    sys.exit(0 if aceptada else 1)  # Código de salida: 0=aceptada, 1=rechazada
 
 
 

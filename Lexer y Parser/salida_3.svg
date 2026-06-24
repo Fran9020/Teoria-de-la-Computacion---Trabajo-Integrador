@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+  <rect width="500" height="500" fill="#fafafa" />
+  <text x="250.0" y="24" text-anchor="middle" font-family="monospace" font-size="13" fill="#333">FFF[+FC[+FC[+FC][-FC]][-FC]][-FV]</text>
+  <line x1="250.0" y1="470.0" x2="250.0" y2="380.0" stroke="#5b6b73" stroke-width="6.0" stroke-linecap="round" />
+  <line x1="250.0" y1="380.0" x2="280.4" y2="322.8" stroke="#888888" stroke-width="4.2" stroke-linecap="round" />
+  <line x1="280.4" y1="322.8" x2="319.1" y2="296.7" stroke="#888888" stroke-width="2.9" stroke-linecap="round" />
+  <line x1="319.1" y1="296.7" x2="352.5" y2="293.2" stroke="#e74c3c" stroke-width="2.1" stroke-linecap="round" />
+  <line x1="319.1" y1="296.7" x2="334.9" y2="267.0" stroke="#e74c3c" stroke-width="2.1" stroke-linecap="round" />
+  <line x1="280.4" y1="322.8" x2="280.4" y2="276.1" stroke="#e74c3c" stroke-width="2.9" stroke-linecap="round" />
+  <line x1="250.0" y1="380.0" x2="219.6" y2="322.8" stroke="#2ecc71" stroke-width="4.2" stroke-linecap="round" />
+
+  <g font-family="monospace" font-size="11" fill="#333">
+    <circle cx="20" cy="454" r="5" fill="#2ecc71" />
+    <text x="32" y="458">Tejido sano (V)</text>
+    <circle cx="20" cy="474" r="5" fill="#e74c3c" />
+    <text x="32" y="478">Tejido patologico (C)</text>
+  </g>
+</svg>

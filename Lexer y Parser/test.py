@@ -149,6 +149,7 @@ CASOS_INVALIDOS = [
 # ============================================================
 
 
+# --- Ejecutar todos los casos que DEBEN ser aceptados ---
 def ejecutar_validos():
     print("=" * 70)
     print("CASOS VALIDOS (deben ser ACEPTADOS)")
@@ -159,7 +160,7 @@ def ejecutar_validos():
     for id_, cadena, desc in CASOS_VALIDOS:
         entrada_repr = repr(cadena.strip())
         try:
-            ast = parse(cadena)
+            ast = parse(cadena)  # Si no lanza excepción, fue aceptada (OK)
             print(f"[{id_}] OK   - {desc}")
             print(f"       entrada: {entrada_repr}")
             ok += 1
@@ -178,6 +179,7 @@ def ejecutar_validos():
 
 
 
+# --- Ejecutar todos los casos que DEBEN ser rechazados ---
 def ejecutar_invalidos():
     print("=" * 70)
     print("CASOS INVALIDOS (deben ser RECHAZADOS)")
@@ -188,7 +190,7 @@ def ejecutar_invalidos():
     for id_, cadena, desc, tipo in CASOS_INVALIDOS:
         entrada_repr = repr(cadena)
         try:
-            ast = parse(cadena)
+            ast = parse(cadena)  # Si NO lanza excepción, es un fallo del test
             print(f"[{id_}] FALLO - se esperaba RECHAZAR pero fue ACEPTADA")
             print(f"       entrada: {entrada_repr}")
             print(f"       AST: {ast}")
@@ -208,6 +210,7 @@ def ejecutar_invalidos():
 
 
 
+# --- Mostrar un ejemplo visual del AST en formato árbol de texto ---
 def mostrar_ast_ejemplo():
     print("=" * 70)
     print("EJEMPLO DE AST (caso V05)")
@@ -215,18 +218,19 @@ def mostrar_ast_ejemplo():
     cadena = "FFF[+FV[+FV][-FV]][-FC[-FC][+FC]]"
     print(f"Entrada: {cadena}\n")
     ast = parse(cadena)
-    dibujar_ast(ast)
+    dibujar_ast(ast)  # Imprime el árbol con conectores ├── └──
     print()
 
 
 
 
+# --- Punto de entrada: ejecutar toda la suite y mostrar resumen ---
 if __name__ == "__main__":
-    ok_v, fail_v = ejecutar_validos()
-    ok_i, fail_i = ejecutar_invalidos()
-    mostrar_ast_ejemplo()
+    ok_v, fail_v = ejecutar_validos()    # Correr casos válidos
+    ok_i, fail_i = ejecutar_invalidos()  # Correr casos inválidos
+    mostrar_ast_ejemplo()                # Mostrar ejemplo visual del AST
 
-
+    # Resumen final con conteo de resultados
     print("=" * 70)
     print("RESUMEN GENERAL")
     print("=" * 70)

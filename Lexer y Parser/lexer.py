@@ -23,16 +23,19 @@ from dataclasses import dataclass
 # ============================================================
 
 class TokenType(Enum):
-    F = auto()
-    V = auto()
-    C = auto()
-    PLUS = auto()
-    MINUS = auto()
-    LBRACKET = auto()
-    RBRACKET = auto()
-    EOF = auto()
+    """Enumeración de todos los tipos de token reconocidos por el lexer."""
+    F = auto()          # Segmento vascular
+    V = auto()          # Tejido sano
+    C = auto()          # Tejido patológico (cancerígeno)
+    PLUS = auto()       # Giro a la derecha (+)
+    MINUS = auto()      # Giro a la izquierda (-)
+    LBRACKET = auto()   # Inicio de rama ([)
+    RBRACKET = auto()   # Fin de rama (])
+    EOF = auto()        # Fin de la entrada
 
 
+# Mapeo directo: cada carácter válido del alfabeto Σ se asocia a su TokenType.
+# Si el carácter no está acá ni es whitespace, es un error léxico.
 SINGLE_CHAR_TOKENS = {
     "F": TokenType.F,
     "V": TokenType.V,
@@ -43,6 +46,7 @@ SINGLE_CHAR_TOKENS = {
     "]": TokenType.RBRACKET,
 }
 
+# Caracteres de espacio en blanco que el lexer ignora silenciosamente
 WHITESPACE = {" ", "\t", "\n", "\r"}
 
 
@@ -52,10 +56,11 @@ WHITESPACE = {" ", "\t", "\n", "\r"}
 
 @dataclass
 class Token:
-    type: TokenType
-    value: str
-    line: int
-    column: int
+    """Representa un token individual producido por el lexer."""
+    type: TokenType   # Tipo del token (F, V, C, +, -, [, ], EOF)
+    value: str        # Valor literal del carácter fuente
+    line: int         # Línea donde aparece (para reportar errores)
+    column: int       # Columna donde aparece (para reportar errores)
 
     def __repr__(self):
         return (
@@ -88,12 +93,18 @@ class LexicalError(Exception):
 # ============================================================
 
 class Lexer:
+    """
+    Analizador léxico: recibe el código fuente como string y lo
+    convierte en una lista de tokens. Recorre carácter a carácter,
+    clasificándolos según el alfabeto Σ del lenguaje SART-V.
+    """
 
     def __init__(self, source: str):
-        self.source = source
-        self.pos = 0
-        self.length = len(source)
+        self.source = source      # Código fuente completo
+        self.pos = 0              # Posición actual en el string
+        self.length = len(source) # Longitud total del fuente
 
+        # Tracking de posición para mensajes de error
         self.line = 1
         self.column = 1
 
@@ -111,19 +122,21 @@ class Lexer:
             self.column += 1
 
     def tokenize(self) -> list[Token]:
+        """Recorre todo el código fuente y devuelve la lista completa de tokens."""
 
         tokens = []
 
+        # --- Bucle principal: consumir carácter por carácter ---
         while self.pos < self.length:
 
             char = self.source[self.pos]
 
-            # Ignorar espacios en blanco
+            # Caso 1: Ignorar espacios en blanco (no generan token)
             if char in WHITESPACE:
                 self.advance()
                 continue
 
-            # Token válido
+            # Caso 2: Carácter pertenece al alfabeto Σ → generar token
             if char in SINGLE_CHAR_TOKENS:
 
                 token = Token(
@@ -138,13 +151,14 @@ class Lexer:
                 self.advance()
                 continue
 
-            # Error léxico
+            # Caso 3: Carácter no reconocido → error léxico
             raise LexicalError(
                 char,
                 self.line,
                 self.column
             )
 
+        # Al terminar el recorrido, agregar token EOF (marca fin de entrada)
         tokens.append(
             Token(
                 TokenType.EOF,
