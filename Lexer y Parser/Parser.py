@@ -1,4 +1,3 @@
-Código del parser
 
 
 """
@@ -409,19 +408,3 @@ if __name__ == "__main__":
     ast = parse(cadena_ejemplo)
     dibujar_ast(ast)
 
-Salida del parser:
-
-Vaso
-├── tronco: Tronco (FFF)
-├── rama_1: Rama [+FV]  (bifurcación)
-│   ├── tejido: Tejido V (sano)
-│   ├── 1ra sub-rama: Rama [+FV]  (hoja)
-│   │   └── tejido: Tejido V (sano)
-│   └── 2da sub-rama: Rama [-FV]  (hoja)
-│       └── tejido: Tejido V (sano)
-└── rama_2: Rama [-FC]  (bifurcación)
-    ├── tejido: Tejido C (patológico)
-    ├── 1ra sub-rama: Rama [-FC]  (hoja)
-    │   └── tejido: Tejido C (patológico)
-    └── 2da sub-rama: Rama [+FC]  (hoja)
-        └── tejido: Tejido C (patológico)
